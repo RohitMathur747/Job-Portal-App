@@ -1,14 +1,65 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    resume: {
+      type: String,
+      default: "",
+    },
+    resumePublicId: {
+      type: String,
+      default: "",
+    },
+    savedJobs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Job",
+      },
+    ],
+    savedInterviewQuestions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "InterviewQuestions",
+      },
+    ],
+    savedRoleQuestions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RoleQuestions",
+      },
+    ],
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationOTP: String,
+    VerificationOTPExpires: Date,
+    resetPasswordOTP: String,
+    restPasswordOTPExpires: Date,
   },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  password: {},
-});
+  { timestamps: true },
+);
+
+export default mongoose.modelNames("User", userSchema);

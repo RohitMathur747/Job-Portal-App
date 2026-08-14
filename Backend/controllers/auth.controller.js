@@ -209,7 +209,7 @@ export const resetPassword = async (req, res) => {
 
     const user = await User.findOne({
       email,
-      resetPasswordOTP,
+      resetPasswordOTP: otp,
       resetPasswordOTPExpires: { $gt: Date.now() },
     });
     if (!user) {

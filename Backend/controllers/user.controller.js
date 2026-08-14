@@ -12,14 +12,14 @@ export const getProfile = async (req, res) => {
         message: "User not found",
       });
     }
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       user,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: err.message,
+      message: error.message,
     });
   }
 };
@@ -31,22 +31,20 @@ export const updateProfile = async (req, res) => {
     const updateData = {};
 
     if (name) updateData.name = name;
-    if (email) updateData.email = name;
-    if (phone) updateData.phone = name;
+    if (email) updateData.email = email;
+    if (phone) updateData.phone = phone;
 
     //to upload the resume
     if (req.file && req.user.role === "user") {
-      const orginalName = req.file.orginalName;
-      const extension = originalname.split(".").pop().toLowercase();
+      const originalName = req.file.originalname;
+      const extension = originalName.split(".").pop()?.toLowerCase() || "";
 
-      // Sanitized filename but keep the extension for raw files
       const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
       const sanitizedBase = nameWithoutExt
         .replace(/\s+/g, "_")
         .replace(/[^a-zA-Z0-9\-_]/g, "");
       const sanitizedFileName = `${sanitizedBase}.${extension}`;
 
-      // Determine resource type: images should be 'image', docs/pdfs often safer as 'raw' for delivery
       const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(extension);
       const resourceType = isImage ? "image" : "raw";
 
@@ -62,8 +60,8 @@ export const updateProfile = async (req, res) => {
       }
     }
 
-    const user = await User.findByIdAndUpdate(req.user.id, updateData, {
-      returnDocument: "after",
+    await User.findByIdAndUpdate(req.user.id, updateData, {
+      new: true,
     }).select("-password");
 
     return res.status(200).json({
@@ -71,9 +69,9 @@ export const updateProfile = async (req, res) => {
       message: "Profile updated successfully!",
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: err.message,
+      message: error.message,
     });
   }
 };
@@ -87,7 +85,7 @@ const getPublicIdFromUrl = (url, resourceType) => {
     const pathAfterVersion = parts.slice(uploadIndex + 2).join("/");
     if (resourceType === "raw") return pathAfterVersion;
     return (
-      pathAfterVersion.substring(0, pathAfterVersion.lastIndexof(".")) ||
+      pathAfterVersion.substring(0, pathAfterVersion.lastIndexOf(".")) ||
       pathAfterVersion
     );
   } catch (e) {
@@ -105,7 +103,8 @@ export const getResume = async (req, res) => {
         message: "Resume not found",
       });
     }
-    const resouceType = user.resume.includes("/raw/") ? "raw" : "image";
+
+    const resourceType = user.resume.includes("/raw/") ? "raw" : "image";
     const publicId =
       user.resumePublicId || getPublicIdFromUrl(user.resume, resourceType);
     if (!publicId) {
@@ -115,10 +114,10 @@ export const getResume = async (req, res) => {
       });
     }
 
-    if (resouceType === "raw") {
-      const fileName = public.split("/").pop() || "resume.pdf";
+    if (resourceType === "raw") {
+      const fileName = publicId.split("/").pop() || "resume.pdf";
       const format = fileName.includes(".")
-        ? fileName.split(".").pop().toLowercase()
+        ? fileName.split(".").pop()?.toLowerCase() || "pdf"
         : "pdf";
 
       const signedUrl = cloudinary.utils.private_download_url(
@@ -128,24 +127,23 @@ export const getResume = async (req, res) => {
           resource_type: "raw",
           type: "upload",
           secure: true,
-          expires_at: Math.floor(Date.now() / 1000) + 300, // 5 minutes
+          expires_at: Math.floor(Date.now() / 1000) + 300,
         },
       );
       return res.redirect(signedUrl);
-
-      //for images
-      const signedUrl = cloudinary.url(publicId, {
-        resource_type: "image",
-        type: "upload",
-        secure: true,
-        sign_url: true,
-        expires_at: Math.floor(Date.now() / 1000) + 300,
-      });
-      return res.redirect(signedUrl);
     }
-  } catch (err) {
-    console.error("Resume Access Error:", err.message);
-    res.status(500).json({
+
+    const signedUrl = cloudinary.url(publicId, {
+      resource_type: "image",
+      type: "upload",
+      secure: true,
+      sign_url: true,
+      expires_at: Math.floor(Date.now() / 1000) + 300,
+    });
+    return res.redirect(signedUrl);
+  } catch (error) {
+    console.error("Resume Access Error:", error.message);
+    return res.status(500).json({
       success: false,
       message: "Could not access resume",
     });

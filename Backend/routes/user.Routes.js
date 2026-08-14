@@ -1,11 +1,11 @@
 import express from "express";
-import { authMiddleware, authorize } from "../middleware/authMiddleware";
+import { authMiddleware, authorize } from "../middleware/authMiddleware.js";
 import {
   getProfile,
   getResume,
   updateProfile,
-} from "../controllers/user.controller";
-import { upload } from "../middleware/uploadMiddleware";
+} from "../controllers/user.controller.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 
 const userRouter = express.Router();
 userRouter.get("/profile", authMiddleware, getProfile);

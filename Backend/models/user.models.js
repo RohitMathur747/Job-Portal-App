@@ -55,11 +55,11 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     verificationOTP: String,
-    VerificationOTPExpires: Date,
+    verificationOTPExpires: Date,
     resetPasswordOTP: String,
-    restPasswordOTPExpires: Date,
+    resetPasswordOTPExpires: Date,
   },
   { timestamps: true },
 );
 
-export default mongoose.modelNames("User", userSchema);
+export default mongoose.model("User", userSchema);

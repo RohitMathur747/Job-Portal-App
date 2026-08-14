@@ -18,7 +18,7 @@ export const register = async (req, res) => {
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userRole = role || "user";
+    const userRole = req.body.role || "user";
 
     // generate a otp
     const verficationOTP = Math.floor(
@@ -73,11 +73,10 @@ export const login = async (req, res) => {
       });
     }
     if (!user.isVerified) {
-      (res.status(401),
-        json({
-          success: false,
-          message: "Please verify your email address before logging in",
-        }));
+      return res.status(401).json({
+        success: false,
+        message: "Please verify your email address before logging in",
+      });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -181,7 +180,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     try {
-      await sendForgotPasswordEmail(email, user.name, resetOTP);
+      await sendForgotPassword(email, user.name, resetOTP);
     } catch (error) {
       console.error("Failed to send reset email:", error);
     }
@@ -210,7 +209,7 @@ export const resetPassword = async (req, res) => {
 
     const user = await User.findOne({
       email,
-      resetPasswordOTP,
+      resetPasswordOTP: otp,
       resetPasswordOTPExpires: { $gt: Date.now() },
     });
     if (!user) {

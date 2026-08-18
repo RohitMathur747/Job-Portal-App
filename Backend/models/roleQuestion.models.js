@@ -17,7 +17,7 @@ const roleQuestionSchema = new mongoose.Schema(
     },
     keyPoints: [
       {
-        type: string,
+        type: String,
       },
     ],
     askedBy: [

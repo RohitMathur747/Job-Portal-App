@@ -1,53 +1,62 @@
-import InterviewCompanyModels from "../models/interviewCompany.models";
-import InterviewQuestionModels from "../models/interviewQuestion.models";
-import InterviewRoleModels from "../models/interviewRole.models";
-import RoleQuestionModels from "../models/roleQuestion.models";
-import { parseQuestion, uploadFiles } from "../utils/helper";
+import InterviewCompany from "../models/interviewCompany.models.js";
+import InterviewQuestion from "../models/interviewQuestion.models.js";
+import InterviewRole from "../models/interviewRole.models.js";
+import RoleQuestion from "../models/roleQuestion.models.js";
+import {
+  handleError,
+  parseQuestion,
+  replaceQuestions,
+  uploadFiles,
+} from "../utils/helper.js";
 
-//add to interview question
+// add to interview company
 export const addInterviewCompany = async (req, res) => {
   try {
     const { companyName, questionsCount, questionsData } = req.body;
     if (!companyName || !questionsCount) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Required Fields missing",
       });
     }
-    const exists = await InterviewCompanyModels.findOne({ companyName });
+
+    const exists = await InterviewCompany.findOne({ companyName });
     if (exists) {
       return res.status(400).json({
         success: false,
         message: "Company is Already Exists",
       });
     }
+
     const uploads = await uploadFiles(req.files, {
       logoFile: { folder: "jobportal/logos", type: "image" },
       csvFile: { folder: "jobportal/csv", type: "raw" },
     });
+
     const company = await InterviewCompany.create({
       companyName,
-      logo: uploads.logoFile || "",
-      questionCOunt,
+      questionCount: questionsCount,
       csvFileUrl: uploads.csvFile || "",
       createdBy: req.user.id,
     });
-    if (questionData) {
+
+    if (questionsData) {
       const formatted = parseQuestion(
-        questionData,
+        questionsData,
         "company",
-        company_id,
+        company._id,
         req.user.id,
       );
-      await InterviewQuestionModels.insertMany(formatted);
+      await InterviewQuestion.insertMany(formatted);
     }
+
     res.status(201).json({ success: true, company });
   } catch (err) {
     handleError(res, err);
   }
 };
 
-//get companies ques
+// get companies
 export const getInterviewCompanies = async (req, res) => {
   try {
     const companies = await InterviewCompany.find().sort({ createdAt: -1 });
@@ -55,32 +64,31 @@ export const getInterviewCompanies = async (req, res) => {
       success: true,
       companies,
     });
-  } catch (error) {
+  } catch (err) {
     handleError(res, err);
   }
 };
 
-//now to get questions for that company
+// get questions for a company
 export const getInterviewQuestionByCompany = async (req, res) => {
   try {
     const { companyId } = req.params;
-    const { company, questions } = await Promise.all([
+    const [company, questions] = await Promise.all([
       InterviewCompany.findById(companyId),
-      InterviewQuestionModels.find({ company: companyId }).sort({
-        createdAt: -1,
-      }),
+      InterviewQuestion.find({ company: companyId }).sort({ createdAt: -1 }),
     ]);
+
     res.status(200).json({
       success: true,
       company,
       questions,
     });
-  } catch (error) {
+  } catch (err) {
     handleError(res, err);
   }
 };
 
-// Update Company
+// update company
 export const updateInterviewCompany = async (req, res) => {
   try {
     const { companyId } = req.params;
@@ -92,7 +100,7 @@ export const updateInterviewCompany = async (req, res) => {
     }
 
     if (companyName) company.companyName = companyName;
-    if (questionsCount) company.questionsCount = questionsCount;
+    if (questionsCount) company.questionCount = questionsCount;
 
     const uploads = await uploadFiles(req.files, {
       logoFile: { folder: "jobportal/logos", type: "image" },
@@ -105,7 +113,7 @@ export const updateInterviewCompany = async (req, res) => {
     await company.save();
 
     if (questionsData) {
-      const formatted = parseQuestions(
+      const formatted = parseQuestion(
         questionsData,
         "company",
         company._id,
@@ -125,7 +133,7 @@ export const updateInterviewCompany = async (req, res) => {
   }
 };
 
-//delete a company
+// delete company
 export const deleteInterviewCompany = async (req, res) => {
   try {
     const { companyId } = req.params;
@@ -136,39 +144,145 @@ export const deleteInterviewCompany = async (req, res) => {
       success: true,
       message: "Company Delete Successfully!",
     });
-  } catch (error) {
+  } catch (err) {
     handleError(res, err);
   }
 };
 
-//Role Question
-//To add a role
+// add a role
 export const addInterviewRole = async (req, res) => {
   try {
-    const { roleName, questionCount, questionData } = req.body;
+    const { roleName, questionCount, questionsData } = req.body;
     if (!roleName || !questionCount) {
       return res.status(400).json({
         message: "Required Fields Missing",
       });
     }
-    const exists = await InterviewRoleModels.findOne({ roleName });
+
+    const exists = await InterviewRole.findOne({ roleName });
     if (exists) {
       return res.status(200).json({
         message: "Role is already Exists",
       });
     }
+
     const uploads = await uploadFiles(req.files, {
-      logoFile: { folder: "jobportal/logos", type: "image" },
+      imageFile: { folder: "jobportal/roles", type: "image" },
       csvFile: { folder: "jobportal/csv", type: "raw" },
     });
-    const role = await InterviewRoleModels.create({
+
+    const role = await InterviewRole.create({
       roleName,
       image: uploads.imageFile || "",
       questionCount,
       csvFileUrl: uploads.csvFile || "",
       createdBy: req.user.id,
     });
-  } catch (error) {
+
+    if (questionsData) {
+      const formatted = parseQuestion(
+        questionsData,
+        "role",
+        role._id,
+        req.user.id,
+      );
+      await RoleQuestion.insertMany(formatted);
+    }
+
+    res.status(200).json({
+      success: true,
+      role,
+    });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+// get roles
+export const getInterviewRoles = async (req, res) => {
+  try {
+    const roles = await InterviewRole.find().sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      roles,
+    });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+// get questions for a role
+export const getQuestionByRole = async (req, res) => {
+  try {
+    const { roleId } = req.params;
+    const [role, questions] = await Promise.all([
+      InterviewRole.findById(roleId),
+      RoleQuestion.find({ roleId }).sort({ createdAt: -1 }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      role,
+      questions,
+    });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+// update role
+export const updateInterviewRole = async (req, res) => {
+  try {
+    const { roleId } = req.params;
+    const { roleName, questionsCount, questionsData } = req.body;
+
+    const role = await InterviewRole.findById(roleId);
+    if (!role) {
+      return res.status(404).json({ message: "Role not found" });
+    }
+
+    if (roleName) role.roleName = roleName;
+    if (questionsCount) role.questionCount = questionsCount;
+
+    const uploads = await uploadFiles(req.files, {
+      imageFile: { folder: "jobportal/roles", type: "image" },
+      csvFile: { folder: "jobportal/csv", type: "raw" },
+    });
+
+    if (uploads.imageFile) role.image = uploads.imageFile;
+    if (uploads.csvFile) role.csvFileUrl = uploads.csvFile;
+
+    await role.save();
+
+    if (questionsData) {
+      const formatted = parseQuestion(
+        questionsData,
+        "role",
+        role._id,
+        req.user.id,
+      );
+
+      await replaceQuestions(RoleQuestion, { roleId }, formatted);
+    }
+
+    res.status(200).json({ success: true, role });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+// delete role
+export const deleteInterviewRole = async (req, res) => {
+  try {
+    const { roleId } = req.params;
+    await InterviewRole.findByIdAndDelete(roleId);
+    await RoleQuestion.deleteMany({ roleId });
+
+    res.status(200).json({
+      success: true,
+      message: "Role delete Successfully!",
+    });
+  } catch (err) {
     handleError(res, err);
   }
 };

@@ -16,12 +16,12 @@ const interviewQuestionsSchema = new mongoose.Schema(
       required: true,
     },
     keyPoints: {
-      type: [string],
+      type: [String],
       default: [],
     },
     postDate: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

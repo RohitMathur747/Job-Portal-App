@@ -1057,7 +1057,7 @@ export const navbarStyles = {
 
   // Nav
   nav: "bg-white/70 backdrop-blur-xl border-b border-white/30 shadow-lg",
-  navContainer: "max-w-10xl mx-auto px-4 sm:px-6 lg:px-6",
+  navContainer: "relative max-w-10xl mx-auto px-4 sm:px-6 lg:px-6",
   navContent: "flex items-center justify-between gap-3 h-20 lg:h-24",
 
   // Logo Section
@@ -1072,7 +1072,7 @@ export const navbarStyles = {
   logoSubtitle: "text-xs text-gray-400  min-[1407px]:block",
 
   // Desktop Navigation
-  desktopNav: "flex min-w-0 flex-1 justify-center overflow-x-auto",
+  desktopNav: "hidden lg:flex min-w-0 flex-1 justify-center overflow-x-auto",
   navIndicatorContainer: "relative",
   activeIndicator:
     "absolute -bottom-2 h-1 rounded-full bg-linear-to-r from-indigo-300 to-pink-300 transition-all duration-300 ease-out",
@@ -1114,7 +1114,7 @@ export const navbarStyles = {
 
   // Right Side Actions
   rightActions: "flex shrink-0 items-center gap-3 min-[1407px]:ml-2",
-  desktopAuth: "hidden md:block lg:block xl:flex items-center gap-3 shrink-0",
+  desktopAuth: "hidden lg:flex items-center gap-3 shrink-0",
 
   // User Menu
   userMenuContainer: "relative",
@@ -1142,12 +1142,12 @@ export const navbarStyles = {
 
   // Mobile Menu Button
   mobileMenuButton:
-    "flex min-[1407px]:hidden p-2.5 rounded-xl text-gray-600 hover:bg-white/60 transition-colors",
+    "flex lg:hidden p-2.5 rounded-xl text-gray-600 hover:bg-white/60 transition-colors",
   mobileMenuIcon: "w-6 h-6",
 
   // Mobile Menu
   mobileMenu:
-    "min-[1407px]:hidden py-4 border-t border-gray-200/50 animate-slideDown",
+    "absolute left-0 right-0 top-full lg:hidden border-t border-gray-200/50 bg-white/95 px-4 py-4 shadow-lg animate-slideDown",
   mobileMenuContent: "flex flex-col gap-2",
 
   // Mobile Nav Items

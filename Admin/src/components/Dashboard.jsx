@@ -9,6 +9,9 @@ import {
   Users,
   X,
   XCircle,
+  Filter,
+  Search,
+  MapPin,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -108,7 +111,7 @@ const Dashboard = () => {
       const res = await fetch(`http://localhost:5000/api/job/${jobId}/close`, {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -287,7 +290,179 @@ const Dashboard = () => {
             );
           })}
         </div>
+        {/* filter section */}
+        <div className={s.filtersContainer}>
+          <div className={s.filtersHeader}>
+            <div className={s.filtersTitleContainer}>
+              <Filter className={s.filtersIcon} />
+              <h2 className={s.filtersTitle}>Filters</h2>
+            </div>
+            {(companyFilter || roleFilter || statusFilter !== "active") && (
+              <button onClick={clearFilters} className={s.filtersClearBtn}>
+                <X className="w-4 h-4" />
+                Clear All
+              </button>
+            )}
+          </div>
+          <div className={s.filtersGrid}>
+            <div className={s.filterInputContainer}>
+              <label className={s.filterLabel}>Filter By Company</label>
+              <div className={s.filterInputWrapper}>
+                <Search className={s.filterSearchIcon} />
+                <select
+                  value={companyFilter}
+                  onChange={(e) => setCompanyFilter(e.target.value)}
+                  className={s.filterSelect}
+                >
+                  <option value="">All Companies</option>
+                  {uniqueCompanies.map((company) => (
+                    <option key={company} value={company}>
+                      {company}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* role filter */}
+            <div className={s.filterInputContainer}>
+              <label className={s.filterLabel}>Filter By Role</label>
+              <div className={s.filterInputWrapper}>
+                <Search className={s.filterSearchIcon} />
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className={s.filterSelect}
+                >
+                  <option value="">All Roles</option>
+                  {uniqueRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* company sections */}
+        <div className={s.jobsSection}>
+          <div className={s.jobsHeader}>
+            <h2 className={s.jobsTitle}>
+              <Building className={s.jobsTitleIcon} />
+              {statusFilter === "active"
+                ? "Active Roles"
+                : statusFilter === "closed"
+                  ? "Closed Roles"
+                  : "All Roles"}
+            </h2>
+            <div className={s.jobsFilterContainer}>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className={s.jobsStatusSelect}
+              >
+                <option value="active">Active Jobs</option>
+                <option value="closed">Closed Jobs</option>
+                <option value="all">All Jobs</option>
+              </select>
+              <div className={s.jobsCount}>
+                {filteredJobs.length}{" "}
+                {filteredJobs.length === 1 ? "job" : "jobs"}
+              </div>
+            </div>
+          </div>
+
+          {/* job card */}
+          {loading ? (
+            <div className={s.loadingContainer}>
+              <div className={s.loadingSpinner}></div>
+            </div>
+          ) : filteredJobs.length > 0 ? (
+            <div className={s.jobsGrid}>
+              {filteredJobs.map((job) => (
+                <React.Fragment key={job.id}>
+                  <div className={s.jobCardOverlay}></div>
+                  <div className={s.jobCardContent}>
+                    <div className={s.jobCardHeader}>
+                      <div className={s.jobLogoContainer}>
+                        <div className={s.jobLogoWrapper}>
+                          <img
+                            src={job.logo}
+                            alt={job.name}
+                            className={s.jobLogo}
+                            onError={handleImageError}
+                          />
+                          <div className={s.jobLogoFallback}>
+                            <Building className={s.jobLogoFallbackIcon} />
+                          </div>
+                        </div>
+                      </div>
+                      {/* job details */}
+                      <div className={s.jobDetails}>
+                        <h3 className={s.jobRole}>{job.role}</h3>
+                        <p className={s.jobCompany}>
+                          <Building className={s.jobCompanyIcon} />
+                          {job.name}
+                        </p>
+                        <p className={s.jobLocation}>
+                          <MapPin className={s.jobLocationIcon} />
+                          {job.location}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className={s.jobMeta}>
+                      <span className={s.jobCategory}>{job.category}</span>
+                      <div className={s.jobApplicants}>
+                        <Users className={s.jobApplicantsIcon} />
+                        <span className={s.jobApplicantsCount}>
+                          {job.applicants}
+                        </span>
+                        <span className={s.jobApplicantsLabel}>applicants</span>
+                      </div>
+                    </div>
+                    <div className={s.jobActions}>
+                      <button
+                        onClick={() =>
+                          navigate("/applicants", {
+                            state: {
+                              jobId: job.id,
+                              role: job.role,
+                              companyName: job.name,
+                            },
+                          })
+                        }
+                        className={s.viewApplicantsBtn}
+                      >
+                        View Applicants
+                      </button>
+                      {job.status === "active" && (
+                        <button
+                          onClick={() => handleCloseJob(job.id)}
+                          className={s.closeJobBtn}
+                        >
+                          Close Job
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          ) : (
+            <div className={s.emptyState}>
+              <Building className={s.emptyStateIcon} />
+              <h3 className={s.emptyStateIcon}>No Matching jobs found</h3>
+              <p className={s.emptyStateText}>Try adjusting your filters</p>
+              <button onClick={clearFilters} className={s.emptyStateBtn}>
+                Clear Filters
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+      <style>{s.animations}</style>
     </div>
   );
 };

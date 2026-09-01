@@ -6,6 +6,18 @@ import {
   Image as ImageIcon,
   Upload,
   Building2,
+  Code2,
+  Trash2,
+  Plus,
+  DollarSign,
+  Calendar,
+  MapPin,
+  Tag,
+  Users,
+  FileText,
+  GraduationCap,
+  ListChecks,
+  Loader2,
 } from "lucide-react";
 import axios from "axios";
 
@@ -13,14 +25,14 @@ import axios from "axios";
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onclose();
+      onClose();
     }, 3000);
     return () => clearTimeout(timer);
   }, [onClose]);
   return (
     <div className={s.toastWrapper}>
       <div
-        className={`${toastContent} ${
+        className={`${s.toastContent} ${
           type === "success" ? s.toastSuccess : s.toastError
         }`}
       >
@@ -291,7 +303,7 @@ const AddJobsPage = () => {
 
   //to handle array change
   const handleArrayChange = (field, index, value) => {
-    const newArray = [...formData(field)];
+    const newArray = [...formData[field]];
     newArray[index] = value;
     setFormData({ ...formData, [field]: newArray });
   };
@@ -383,7 +395,7 @@ const AddJobsPage = () => {
         );
 
         if (formData.image) {
-          formDataToSend.append("companyLogo", formData.image);
+          formDataToSend.append("companylogo", formData.image);
         }
 
         const token = localStorage.getItem("token");
@@ -496,8 +508,429 @@ const AddJobsPage = () => {
               />
             </div>
           </div>
+
+          {/* tech stack */}
+          <div className={s.arraySection}>
+            <label className={s.arrayLabel}>
+              <Code2 size={16} className={s.uploadIcon} /> Tech Stack{" "}
+              <span className={s.uploadRequired}>*</span>
+            </label>
+            {formData.techStack.map((tech, index) => (
+              <div key={index} className={s.arrayItemRow}>
+                <input
+                  type="text"
+                  value={tech}
+                  onChange={(e) =>
+                    handleArrayChange("techStack", index, e.target.value)
+                  }
+                  className={`${s.arrayInput}${errors.techStack && !tech.trim() ? ` ${s.arrayInputError}` : ""}`}
+                  placeholder="eg. React, Node.js etc."
+                />
+                {formData.techStack.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeArrayField("techStack", index)}
+                    className={s.removeBtn}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            ))}
+            {/* to add tech stacks */}
+            <button
+              type="button"
+              onClick={() => addArrayField("techStack")}
+              className={s.addBtn}
+            >
+              <Plus size={14} /> Add Another Tech Stack
+            </button>
+            {errors.techStack && (
+              <p className={s.errorText}>{errors.techStack}</p>
+            )}
+          </div>
+
+          <div className={s.grid3}>
+            <AnimatedField
+              icon={MapPin}
+              label="Location"
+              name="location"
+              value={formData.location}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  location: e.target.value,
+                })
+              }
+              errors={errors.location}
+              placeholder="eg. New York, NY"
+              required
+            />
+            <AnimatedField
+              icon={Briefcase}
+              label="Experience (in years)"
+              name="experience"
+              value={formData.experience}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  experience: e.target.value,
+                })
+              }
+              errors={errors.experience}
+              placeholder="eg. 3+ Years"
+              required
+            />
+
+            <div className={s.salaryContainer}>
+              <label className={s.salaryLabel}>
+                Salary <span className={s.uploadRequired}>*</span>
+              </label>
+              <div className={s.salaryInputWrapper}>
+                <div
+                  className={`${s.salaryInputGroup} ${
+                    errors.salary
+                      ? s.salaryInputGroupError
+                      : formData.salary.amount
+                        ? s.salaryInputGroupFilled
+                        : s.salaryInputGroupDefault
+                  }`}
+                >
+                  <span className={s.salaryIconSpan}>
+                    <DollarSign
+                      size={18}
+                      className={
+                        formData.salary.amount ? s.salaryIconFilled : ""
+                      }
+                    />
+                  </span>
+                  <input
+                    type="number"
+                    value={formData.salary.amount}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        salary: { ...formData.salary, amount: e.target.value },
+                      })
+                    }
+                    className={s.salaryAmountInput}
+                    placeholder="80000"
+                  />
+                  <select
+                    value={formData.salary.period}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        salary: { ...formData.salary, period: e.target.value },
+                      })
+                    }
+                    className={s.salaryPeriodSelect}
+                  >
+                    <option value="hour">/ hour</option>
+                    <option value="day">/ day</option>
+                    <option value="week">/ week</option>
+                    <option value="month">/ month</option>
+                    <option value="year">/ year</option>
+                  </select>
+                </div>
+                {errors.salary && (
+                  <p className={s.errorText}>{errors.salary}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className={s.grid3}>
+            <AnimatedField
+              icon={Briefcase}
+              label="Job Type"
+              name="jobtype"
+              type="text"
+              value={formData.jobType}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  jobType: e.target.value,
+                })
+              }
+              errors={errors.jobType}
+              required
+            >
+              <option value="full-time">Full-time</option>
+              <option value="part-time">Part-time</option>
+              <option value="contract">Contract</option>
+              <option value="internship">Internship</option>
+            </AnimatedField>
+
+            <AnimatedField
+              icon={Calendar}
+              label="Post Date"
+              name="postdate"
+              type="date"
+              value={formData.postDate}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  postDate: e.target.value,
+                })
+              }
+              errors={errors.postDate}
+              disabled
+              required
+            />
+
+            <AnimatedField
+              icon={Tag}
+              label="Category"
+              name="category"
+              type="text"
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  category: e.target.value,
+                })
+              }
+              errors={errors.category}
+              required
+            >
+              <option value="" disabled>
+                Select Category
+              </option>
+              {categories.map((cat, index) => (
+                <option key={index} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </AnimatedField>
+          </div>
+
+          <div className={s.grid2}>
+            <AnimatedField
+              icon={Users}
+              label="Number of Openings"
+              name="openings"
+              type="number"
+              value={formData.openings}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  openings: parseInt(e.target.value) || 0,
+                })
+              }
+              errors={errors.openings}
+              required
+            />
+
+            <AnimatedField
+              icon={FileText}
+              label="Overview"
+              name="overview"
+              type="textarea"
+              value={formData.overview}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  overview: e.target.value,
+                })
+              }
+              errors={errors.overview}
+              placeholder="Provide a brief overview of the job role"
+              required
+            />
+
+            {/* Responsibilities */}
+            <div className={s.arraySection}>
+              <label className={s.arrayLabel}>
+                <ListChecks size={16} className={s.uploadIcon} />{" "}
+                Responsibilities <span className={s.uploadRequired}>*</span>
+              </label>
+              {formData.responsibilities.map((resp, index) => (
+                <div key={index} className={s.arrayItemRow}>
+                  <input
+                    type="text"
+                    value={resp}
+                    onChange={(e) =>
+                      handleArrayChange(
+                        "responsibilities",
+                        index,
+                        e.target.value,
+                      )
+                    }
+                    className={`${s.arrayInput} ${
+                      errors.responsibilities && !resp.trim()
+                        ? s.arrayInputError
+                        : s.arrayInputDefault
+                    }`}
+                    placeholder="Develop new features..."
+                  />
+                  {formData.responsibilities.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeArrayField("responsibilities", index)
+                      }
+                      className={s.removeBtn}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addArrayField("responsibilities")}
+                className={s.addBtn}
+              >
+                <Plus size={14} /> Add another responsibility
+              </button>
+              {errors.responsibilities && (
+                <p className={s.errorText}>{errors.responsibilities}</p>
+              )}
+            </div>
+
+            {/* Job Criteria */}
+            <div className={s.arraySection}>
+              <label className={s.arrayLabel}>
+                <ListChecks size={16} className={s.uploadIcon} /> Job Criteria{" "}
+                <span className={s.uploadRequired}>*</span>
+              </label>
+              {formData.jobCriteria.map((crit, index) => (
+                <div key={index} className={s.arrayItemRow}>
+                  <input
+                    type="text"
+                    value={crit}
+                    onChange={(e) =>
+                      handleArrayChange("jobCriteria", index, e.target.value)
+                    }
+                    className={`${s.arrayInput} ${
+                      errors.jobCriteria && !crit.trim()
+                        ? s.arrayInputError
+                        : s.arrayInputDefault
+                    }`}
+                    placeholder="5+ years experience..."
+                  />
+                  {formData.jobCriteria.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeArrayField("jobCriteria", index)}
+                      className={s.removeBtn}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addArrayField("jobCriteria")}
+                className={s.addBtn}
+              >
+                <Plus size={14} /> Add another criterion
+              </button>
+              {errors.jobCriteria && (
+                <p className={s.errorText}>{errors.jobCriteria}</p>
+              )}
+            </div>
+
+            {/* Education */}
+            <div className={s.arraySection}>
+              <label className={s.arrayLabel}>
+                <GraduationCap size={16} className={s.uploadIcon} /> Education{" "}
+                <span className={s.uploadRequired}>*</span>
+              </label>
+              {formData.education.map((edu, index) => (
+                <div key={index} className={s.arrayItemRow}>
+                  <input
+                    type="text"
+                    value={edu}
+                    onChange={(e) =>
+                      handleArrayChange("education", index, e.target.value)
+                    }
+                    className={`${s.arrayInput} ${
+                      errors.education && !edu.trim()
+                        ? s.arrayInputError
+                        : s.arrayInputDefault
+                    }`}
+                    placeholder="Bachelor's in Computer Science"
+                  />
+                  {formData.education.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeArrayField("education", index)}
+                      className={s.removeBtn}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addArrayField("education")}
+                className={s.addBtn}
+              >
+                <Plus size={14} /> Add another education requirement
+              </button>
+              {errors.education && (
+                <p className={s.errorText}>{errors.education}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className={`${s.submitBtn}${isPosting ? s.submitBtnDisabled : ""}`}
+            disabled={isPosting}
+          >
+            {isPosting ? (
+              <>
+                <Loader2 className={s.spinnerIcon} /> Posting Job...
+              </>
+            ) : (
+              "Post Job"
+            )}
+          </button>
         </form>
       </div>
+      <style>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%) translateY(-10px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0) translateY(0);
+            opacity: 1;
+          }
+        }
+        @keyframes shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          10%,
+          30%,
+          50%,
+          70%,
+          90% {
+            transform: translateX(-2px);
+          }
+          20%,
+          40%,
+          60%,
+          80% {
+            transform: translateX(2px);
+          }
+        }
+        .animate-slide-in {
+          animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };
